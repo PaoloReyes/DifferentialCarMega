@@ -10,7 +10,7 @@ DifferentialCar car (LEFT_MOTOR_IN1, LEFT_MOTOR_IN2, LEFT_MOTOR_EN,
 RS485 rs485(&Serial, READ_WRITE_ENABLER);
 
 void setup(void) {
-  Serial.begin(115200);
+  Serial.begin(9600);
   car.init();
   rs485.write("OP 1");
 }
