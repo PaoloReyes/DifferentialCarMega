@@ -35,7 +35,7 @@
                             double right_ki);
             void init(void);
 
-            void set_linear_speed(double speed);
+            void set_curve_linear_speed(double speed);
 
         private:
             static void left_motor_isr(void);

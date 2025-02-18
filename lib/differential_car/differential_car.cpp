@@ -44,7 +44,7 @@ void DifferentialCar::init(void) {
 
 /// @brief Kinematic model to set the linear speed of the car
 /// @param speed Linear speed in m/s
-void DifferentialCar::set_linear_speed(double speed) {
+void DifferentialCar::set_curve_linear_speed(double speed) {
     const double car_speed_rpm = speed*60/DifferentialCarNS::wheel_circumference;
     const double car_delta_by_side = car_speed_rpm*DifferentialCarNS::curve_factor;
     this->set_speed(car_speed_rpm-car_delta_by_side, car_speed_rpm+car_delta_by_side);
