@@ -5,7 +5,7 @@
 
     class RS485 {
         public:
-            RS485(HardwareSerial* serial, uint16_t read_write_enabler);
+            RS485(HardwareSerial* serial, uint32_t baudrate, uint16_t read_write_enabler);
             String read();
             void write(const char* data);
         private:
