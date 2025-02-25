@@ -132,14 +132,6 @@ void JohnsonMotor::update_speed(void) {
         }
         
         this->set_pwm_internal(pid_output);
-
-        Serial.print(this->speed_setpoint);
-        Serial.print(" ");
-        Serial.print(this->speed);
-        Serial.print(" ");
-        Serial.print(error);
-        Serial.print(" ");
-        Serial.println(pid_output);
     }
 }
 
