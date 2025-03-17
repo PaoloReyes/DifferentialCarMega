@@ -21,6 +21,13 @@ void setup(void) {
 const double linear_speed = 0.3; //m/s
 void loop(void) {
   car.set_speed(linear_speed, linear_speed*CURVE_FACTOR);
+  delay(2000);
+  car.set_speed(0, 0);
+  delay(2000);
+  car.set_speed(linear_speed, -linear_speed*CURVE_FACTOR);
+  delay(2000);
+  car.set_speed(0, 0);
+  delay(2000);
   // rs485.write("GG\r\n");
   // Serial.println(rs485.read());
   // delay(1000);
