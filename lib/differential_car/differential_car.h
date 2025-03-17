@@ -4,18 +4,18 @@
     #include <Arduino.h>
     #include <johnson_motor.h>
 
-    namespace DifferentialCarNS {
-        const uint16_t TIMER_CAR_MAX = 65535;   // MAX value for 16-bit timer
-        const double TIMER_CAR_S = 0.15;        // Delta time in seconds for speed calculation
-        const uint8_t TIMER_CAR_PRESCALAR = 64; // Timer prescalar
-        const uint16_t TIMER_CAR_PRELOAD = DifferentialCarNS::TIMER_CAR_MAX-(DifferentialCarNS::TIMER_CAR_S*F_CPU/DifferentialCarNS::TIMER_CAR_PRESCALAR); // Timer preload value
+    #define TIMER_CAR_MAX 65535
+    #define TIMER_CAR_S 0.15
+    #define TIMER_CAR_PRESCALAR 64
+    #define TIMER_CAR_PRELOAD TIMER_CAR_MAX-(TIMER_CAR_S*F_CPU/TIMER_CAR_PRESCALAR)
 
-        const double wheel_circumference = 2.5*2.54*PI/100; // Wheel circumference in meters
-        const double curve_factor = 0.0932;                 // Curve factor for difference in diameter in the curve rails
-    }
+    #define WHEEL_CIRCUMFERENCE 2.5*2.54*PI/100
+    #define WHEELS_DISTANCE 0.2
+    #define CURVE_FACTOR 0.932
 
     class DifferentialCar {
         public:
+            static uint32_t last_update;
             static JohnsonMotor *left_motor, *right_motor;
             static void update_speed(void);
 
@@ -35,7 +35,7 @@
                             double right_ki);
             void init(void);
 
-            void set_curve_linear_speed(double speed);
+            void set_speed(double linear_speed, double angular_speed);
 
         private:
             static void left_motor_isr(void);

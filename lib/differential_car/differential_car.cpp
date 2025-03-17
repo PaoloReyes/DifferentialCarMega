@@ -2,12 +2,15 @@
 
 // Initialize static variables
 JohnsonMotor *DifferentialCar::left_motor, *DifferentialCar::right_motor;
+uint32_t DifferentialCar::last_update = millis();
 
 /// @brief Wrapper function to update the speed of the individual motors
 /// @param void
 void DifferentialCar::update_speed(void) {
-    left_motor->update_speed();
-    right_motor->update_speed();
+    if (micros() > DifferentialCar::last_update) {
+        left_motor->update_speed(micros()-DifferentialCar::last_update);
+        right_motor->update_speed(micros()-DifferentialCar::last_update);
+    }
 }
 
 /// @brief Create a DifferentialCar object
@@ -26,8 +29,8 @@ void DifferentialCar::update_speed(void) {
 /// @param right_kp Proportional gain for the right motor
 /// @param right_ki Proportional gain for the right motor
 DifferentialCar::DifferentialCar(uint8_t left_in1, uint8_t left_in2, uint8_t left_pwm, uint8_t left_enc_a, uint8_t left_enc_b, double left_kp, double left_ki, uint8_t right_in1, uint8_t right_in2, uint8_t right_pwm, uint8_t right_enc_a, uint8_t right_enc_b, double right_kp, double right_ki) {
-    this->left_motor = new JohnsonMotor(left_in1, left_in2, left_pwm, left_enc_a, left_enc_b, DifferentialCarNS::TIMER_CAR_S, left_kp, left_ki);
-    this->right_motor = new JohnsonMotor(right_in1, right_in2, right_pwm, right_enc_a, right_enc_b, DifferentialCarNS::TIMER_CAR_S, right_kp, right_ki);
+    this->left_motor = new JohnsonMotor(left_in1, left_in2, left_pwm, left_enc_a, left_enc_b, left_kp, left_ki);
+    this->right_motor = new JohnsonMotor(right_in1, right_in2, right_pwm, right_enc_a, right_enc_b, right_kp, right_ki);
     this->left_motor->attach_interrupt(this->left_motor_isr);
     this->right_motor->attach_interrupt(this->right_motor_isr);
 }
@@ -37,17 +40,18 @@ DifferentialCar::DifferentialCar(uint8_t left_in1, uint8_t left_in2, uint8_t lef
 void DifferentialCar::init(void) {
     TCCR1A = 0;              // Initialize Timer1 Control Registers
     TCCR1B = 0;              // Initialize Timer1 Control Registers
-    TCCR1B |= (DifferentialCarNS::TIMER_CAR_PRESCALAR == 64)? 0b00000011: (DifferentialCarNS::TIMER_CAR_PRESCALAR == 8)? 0b00000010 : 0b00000001; // Set Prescalar
-    TCNT1 = DifferentialCarNS::TIMER_CAR_PRELOAD; // Timer Preloading
+    TCCR1B |= (TIMER_CAR_PRESCALAR == 64)? 0b00000011: (TIMER_CAR_PRESCALAR == 8)? 0b00000010 : 0b00000001; // Set Prescalar
+    TCNT1 = TIMER_CAR_PRELOAD; // Timer Preloading
     TIMSK1 |= B00000001;     // Enable Timer Overflow Interrupt
 }
 
-/// @brief Kinematic model to set the linear speed of the car
-/// @param speed Linear speed in m/s
-void DifferentialCar::set_curve_linear_speed(double speed) {
-    const double car_speed_rpm = speed*60/DifferentialCarNS::wheel_circumference;
-    const double car_delta_by_side = car_speed_rpm*DifferentialCarNS::curve_factor;
-    this->set_speed(car_speed_rpm-car_delta_by_side, car_speed_rpm+car_delta_by_side);
+/// @brief Kinematic model to set the speed of the car
+/// @param linear_speed Linear speed in m/s
+/// @param angular_speed Angular speed in rad/s
+void DifferentialCar::set_speed(double linear_speed, double angular_speed) {
+    const double left_speed = (linear_speed - angular_speed*WHEELS_DISTANCE/2.0)/WHEEL_CIRCUMFERENCE*60.0;
+    const double right_speed = (linear_speed + angular_speed*WHEELS_DISTANCE/2.0)/WHEEL_CIRCUMFERENCE*60.0;
+    this->set_speed(left_speed, right_speed);
 }
 
 /// @brief Wrapper function for the left motor encoder ISR
@@ -73,6 +77,7 @@ void DifferentialCar::set_speed(double left_speed, double right_speed) {
 /// @brief Timer1 Overflow Interrupt Service Routine, reload the timer and update the car speed speed
 /// @param VECTOR(TIMER1_OVF_vect)
 ISR(TIMER1_OVF_vect) {
-    TCNT1 = DifferentialCarNS::TIMER_CAR_PRELOAD;
+    TCNT1 = TIMER_CAR_PRELOAD;
     DifferentialCar::update_speed();
+    DifferentialCar::last_update = micros();
 }

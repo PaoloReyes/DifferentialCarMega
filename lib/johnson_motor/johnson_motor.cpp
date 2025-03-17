@@ -1,35 +1,5 @@
 #include "johnson_motor.h"
 
-/// @brief Initialize a simple JohnsonMotor object
-/// @param in1 Input 1 pin
-/// @param in2 Input 2 pin
-/// @param pwm Enable pin
-JohnsonMotor::JohnsonMotor(uint8_t in1, uint8_t in2, uint8_t pwm) {
-    this->in1 = in1;
-    this->in2 = in2;
-    this->pwm = pwm;
-    this->enc_a = 0;
-    this->enc_b = 0;
-    pinMode(in1, OUTPUT);
-    pinMode(in2, OUTPUT);
-    pinMode(pwm, OUTPUT);
-}
-
-/// @brief Initialize a JohnsonMotor object with encoder
-/// @param in1 Input 1 pin
-/// @param in2 Input 2 pin
-/// @param pwm Enable pin
-/// @param enc_a Encoder A pin
-/// @param enc_b Encoder B pin
-/// @param TIMER_S Delta time in seconds for speed calculation
-JohnsonMotor::JohnsonMotor(uint8_t in1, uint8_t in2, uint8_t pwm, uint8_t enc_a, uint8_t enc_b, double TIMER_S) : JohnsonMotor(in1, in2, pwm) {
-    this->enc_a = enc_a;
-    this->enc_b = enc_b;
-    this->TIMER_S = TIMER_S;
-    pinMode(enc_a, INPUT_PULLUP);
-    pinMode(enc_b, INPUT_PULLUP);
-}
-
 /// @brief Initialize a JohnsonMotor object with encoder and PID controller
 /// @param in1 Input 1 pin
 /// @param in2 Input 2 pin
@@ -39,9 +9,23 @@ JohnsonMotor::JohnsonMotor(uint8_t in1, uint8_t in2, uint8_t pwm, uint8_t enc_a,
 /// @param TIMER_S Delta time in seconds for speed calculation
 /// @param kp Proportional gain
 /// @param ki Integral gain
-JohnsonMotor::JohnsonMotor(uint8_t in1, uint8_t in2, uint8_t pwm, uint8_t enc_a, uint8_t enc_b, double TIMER_S, double kp, double ki) : JohnsonMotor(in1, in2, pwm, enc_a, enc_b, TIMER_S) {
+JohnsonMotor::JohnsonMotor(uint8_t in1, uint8_t in2, uint8_t pwm, uint8_t enc_a, uint8_t enc_b, double kp, double ki) {
+    this->in1 = in1;
+    this->in2 = in2;
+    this->pwm = pwm;
+    if (!(enc_a == 2 || enc_a == 3 || enc_a == 18 || enc_a == 19 || enc_a == 20 || enc_a == 21))
+        while (true) {Serial.println("Invalid encoder pin A");} 
+    if (!(enc_b == 2 || enc_b == 3 || enc_b == 18 || enc_b == 19 || enc_b == 20 || enc_b == 21))
+        while (true) {Serial.println("Invalid encoder pin B");} 
+    this->enc_a = enc_a;
+    this->enc_b = enc_b;
     this->kp = kp;
     this->ki = ki;
+    pinMode(enc_a, INPUT_PULLUP);
+    pinMode(enc_b, INPUT_PULLUP);
+    pinMode(in1, OUTPUT);
+    pinMode(in2, OUTPUT);
+    pinMode(pwm, OUTPUT);
 }
 
 /// @brief Set the interrupt service routine for the motor encoder
@@ -109,29 +93,33 @@ void JohnsonMotor::set_speed(double speed) {
 /// @param void
 /// @return RPM of the motor
 double JohnsonMotor::read_speed(void) {
-    if (this->enc_a == 0 || this->enc_b == 0) {
-        return 0;
-    } else {
-        return this->speed;
-    }
+    return this->speed;
 }
 
 /// @brief Actuates the PID controller and updates the speed of the motor
-/// @param void
-void JohnsonMotor::update_speed(void) {
-    this->speed = ((this->encoder_count - this->prev_encoder_count) * 60) / (177.6 * this->TIMER_S);
+/// @param delta Time in seconds since the last update
+void JohnsonMotor::update_speed(uint32_t delta) {
+    this->speed = ((this->encoder_count - this->prev_encoder_count) * 60) / (177.6 * delta) ;
     this->prev_encoder_count = this->encoder_count;
     
     if (this->speed_control_flag) {
         double error = this->speed_setpoint - this->speed;
-        this->error_sum += error * this->TIMER_S;
+        this->error_sum += error * delta;
 
         double pid_output = this->kp * error + this->ki * this->error_sum;
         if (abs(pid_output) > 1) {
-            this->error_sum -= error * this->TIMER_S;
+            this->error_sum -= error * delta;
         }
         
         this->set_pwm_internal(pid_output);
+
+        // Serial.print(this->speed_setpoint);
+        // Serial.print(" ");
+        // Serial.print(this->speed);
+        // Serial.print(" ");
+        // Serial.print(error);
+        // Serial.print(" ");
+        // Serial.println(pid_output);
     }
 }
 
