@@ -3,9 +3,6 @@
 #include <SoftwareSerial.h>
 #include <utils.h>
 
-#define BUZZER_PIN 11
-double grams[5] = {3000.0, 8.5, 76.9, 7.2, 36.5};
-
 DifferentialCar car(LEFT_MOTOR_IN1, LEFT_MOTOR_IN2, LEFT_MOTOR_EN, 
                     LEFT_MOTOR_ENC_A, LEFT_MOTOR_ENC_B, LEFT_MOTOR_KP, LEFT_MOTOR_KI, 
                     RIGHT_MOTOR_IN1, RIGHT_MOTOR_IN2, RIGHT_MOTOR_EN, 
@@ -15,7 +12,6 @@ RS485 rs485(&Serial2, 9600, READ_WRITE_ENABLER);
 void move(DifferentialCar& car, double speed, double time);
 
 void setup(void) {
-  pinMode(BUZZER_PIN, OUTPUT);
   Serial.begin(115200);
   car.init();
   // rs485.write("OP 1\r\n");
