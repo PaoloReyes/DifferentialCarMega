@@ -41,7 +41,7 @@
             static void left_motor_isr(void);
             static void right_motor_isr(void);
             
-            void set_speed(double left_speed, double right_speed);
+            void set_motors_speed(double left_speed, double right_speed);
     };
 
     ISR(TIMER1_OVF_vect);

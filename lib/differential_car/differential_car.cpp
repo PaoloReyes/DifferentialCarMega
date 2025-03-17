@@ -69,7 +69,7 @@ void DifferentialCar::right_motor_isr(void) {
 /// @brief Update the speed setpoint of the individual motors
 /// @param left_speed RPM setpoint for the left motor
 /// @param right_speed RPM setpoint for the right motor
-void DifferentialCar::set_speed(double left_speed, double right_speed) {
+void DifferentialCar::set_motors_speed(double left_speed, double right_speed) {
     this->left_motor->set_speed(left_speed);
     this->right_motor->set_speed(right_speed);
 }
