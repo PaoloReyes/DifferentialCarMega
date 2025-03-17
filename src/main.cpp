@@ -24,7 +24,7 @@ void loop(void) {
   delay(1000);
   car.set_speed(0, 0);
   delay(2000);
-  car.set_speed(linear_speed, -linear_speed*CURVE_FACTOR);
+  car.set_speed(-linear_speed, -linear_speed*CURVE_FACTOR);
   delay(1000);
   car.set_speed(0, 0);
   delay(2000);
