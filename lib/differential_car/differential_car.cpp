@@ -12,12 +12,12 @@ void DifferentialCar::update_speed(void) {
         left_motor->update_speed(micros()-DifferentialCar::last_update);
         right_motor->update_speed(micros()-DifferentialCar::last_update);
     }
-    DifferentialCar::real_linear_velocity = (right_motor->read_speed()+left_motor->read_speed())*WHEEL_CIRCUMFERENCE/120.0;
-    DifferentialCar::real_angular_velocity = (right_motor->read_speed()-left_motor->read_speed())*WHEEL_CIRCUMFERENCE/(60.0*WHEELS_DISTANCE);
-    Serial.print("Right Motor: ");
-    Serial.print(right_motor->read_speed());
-    Serial.print(" Left Motor: ");
-    Serial.println(left_motor->read_speed());
+    DifferentialCar::real_linear_velocity = (right_motor->read_speed()+left_motor->read_speed())/2.0;
+    DifferentialCar::real_angular_velocity = (right_motor->read_speed()-left_motor->read_speed())/WHEELS_DISTANCE;
+    Serial.print("Linear Speed: ");
+    Serial.print(DifferentialCar::real_linear_velocity);
+    Serial.print(" Angular Speed: ");
+    Serial.println(DifferentialCar::real_angular_velocity);
 }
 
 /// @brief Create a DifferentialCar object
