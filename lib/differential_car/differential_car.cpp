@@ -3,6 +3,7 @@
 // Initialize static variables
 JohnsonMotor *DifferentialCar::left_motor, *DifferentialCar::right_motor;
 uint32_t DifferentialCar::last_update = millis();
+double DifferentialCar::real_linear_velocity = 0.0, DifferentialCar::real_angular_velocity = 0.0;
 
 /// @brief Wrapper function to update the speed of the individual motors
 /// @param void
@@ -11,6 +12,12 @@ void DifferentialCar::update_speed(void) {
         left_motor->update_speed(micros()-DifferentialCar::last_update);
         right_motor->update_speed(micros()-DifferentialCar::last_update);
     }
+    DifferentialCar::real_linear_velocity = (right_motor->read_speed()+left_motor->read_speed())*WHEEL_CIRCUMFERENCE/120.0;
+    DifferentialCar::real_angular_velocity = (right_motor->read_speed()-left_motor->read_speed())*WHEEL_CIRCUMFERENCE/(60.0*WHEELS_DISTANCE);
+    Serial.print("Linear Velocity: ");
+    Serial.print(DifferentialCar::real_linear_velocity);
+    Serial.print(" Angular Velocity: ");
+    Serial.println(DifferentialCar::real_angular_velocity);
 }
 
 /// @brief Create a DifferentialCar object
@@ -52,6 +59,10 @@ void DifferentialCar::set_speed(double linear_speed, double angular_speed) {
     const double left_speed = (linear_speed - angular_speed*WHEELS_DISTANCE/2.0)/WHEEL_CIRCUMFERENCE*60.0;
     const double right_speed = (linear_speed + angular_speed*WHEELS_DISTANCE/2.0)/WHEEL_CIRCUMFERENCE*60.0;
     this->set_motors_speed(left_speed, right_speed);
+}
+
+void DifferentialCar::move(double setpoint_distance) {
+    //double error = setpoint_distance-this->distance;
 }
 
 /// @brief Wrapper function for the left motor encoder ISR

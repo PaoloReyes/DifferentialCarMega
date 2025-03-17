@@ -16,6 +16,7 @@
     class DifferentialCar {
         public:
             static uint32_t last_update;
+            static double real_linear_velocity, real_angular_velocity;
             static JohnsonMotor *left_motor, *right_motor;
             static void update_speed(void);
 
@@ -36,12 +37,14 @@
             void init(void);
 
             void set_speed(double linear_speed, double angular_speed);
+            void move(double setpoint_distance);
 
         private:
             static void left_motor_isr(void);
             static void right_motor_isr(void);
             
             void set_motors_speed(double left_speed, double right_speed);
+            double get_distance(void);
     };
 
     ISR(TIMER1_OVF_vect);
