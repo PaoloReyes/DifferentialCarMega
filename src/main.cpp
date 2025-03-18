@@ -14,20 +14,15 @@ void move(DifferentialCar& car, double speed, double time);
 void setup(void) {
   Serial.begin(115200);
   car.init();
+  car.set_speed(linear_speed, linear_speed*CURVE_FACTOR);
+  delay(7000);
+  car.set_speed(0, 0);
   // rs485.write("OP 1\r\n");
   // Serial.println(rs485.read());
 }
 
 const double linear_speed = 0.3; //m/s
 void loop(void) {
-  car.set_speed(linear_speed, linear_speed*CURVE_FACTOR);
-  delay(2000);
-  car.set_speed(0, 0);
-  delay(2000);
-  car.set_speed(-linear_speed, -linear_speed*CURVE_FACTOR);
-  delay(2000);
-  car.set_speed(0, 0);
-  delay(2000);
   // rs485.write("GG\r\n");
   // Serial.println(rs485.read());
   // delay(1000);
