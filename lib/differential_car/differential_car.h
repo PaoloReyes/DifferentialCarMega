@@ -16,9 +16,9 @@
     class DifferentialCar {
         public:
             static uint32_t last_update;
-            static double real_linear_velocity, real_angular_velocity;
             static JohnsonMotor *left_motor, *right_motor;
             static void update_speed(void);
+            static double relative_x_position, relative_y_position, relative_theta;
 
             DifferentialCar(uint8_t left_in1, 
                             uint8_t left_in2, 

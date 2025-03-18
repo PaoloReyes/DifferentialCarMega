@@ -3,21 +3,22 @@
 // Initialize static variables
 JohnsonMotor *DifferentialCar::left_motor, *DifferentialCar::right_motor;
 uint32_t DifferentialCar::last_update = millis();
-double DifferentialCar::real_linear_velocity = 0.0, DifferentialCar::real_angular_velocity = 0.0;
+double DifferentialCar::relative_x_position = 0.0, DifferentialCar::relative_y_position = 0.0, DifferentialCar::relative_theta = 0.0;
 
 /// @brief Wrapper function to update the speed of the individual motors
 /// @param void
 void DifferentialCar::update_speed(void) {
+    double delta = (double)(micros()-DifferentialCar::last_update)/1000000.0;
     if (micros() > DifferentialCar::last_update) {
-        DifferentialCar::left_motor->update_speed((double)(micros()-DifferentialCar::last_update)/1000000.0);
-        DifferentialCar::right_motor->update_speed((double)(micros()-DifferentialCar::last_update)/1000000.0);
+        DifferentialCar::left_motor->update_speed(delta);
+        DifferentialCar::right_motor->update_speed(delta);
     }
-    DifferentialCar::real_linear_velocity = (DifferentialCar::right_motor->read_speed()+DifferentialCar::left_motor->read_speed())*(WHEEL_CIRCUMFERENCE)/120.0;
-    DifferentialCar::real_angular_velocity = (DifferentialCar::right_motor->read_speed()-DifferentialCar::left_motor->read_speed())*(WHEEL_CIRCUMFERENCE)/(60*WHEELS_DISTANCE);
-    Serial.print("Linear Speed: ");
-    Serial.print(DifferentialCar::real_linear_velocity );
-    Serial.print(" Angular Speed: ");
-    Serial.println(DifferentialCar::real_angular_velocity);
+    double real_linear_velocity = (DifferentialCar::right_motor->read_speed()+DifferentialCar::left_motor->read_speed())*(WHEEL_CIRCUMFERENCE)/120.0;
+    double real_angular_velocity = (DifferentialCar::right_motor->read_speed()-DifferentialCar::left_motor->read_speed())*(WHEEL_CIRCUMFERENCE)/(60*WHEELS_DISTANCE);
+    
+    DifferentialCar::relative_theta += real_angular_velocity*delta;
+    DifferentialCar::relative_x_position += real_linear_velocity*cos(DifferentialCar::relative_theta)*delta;
+    DifferentialCar::relative_y_position += real_linear_velocity*sin(DifferentialCar::relative_theta)*delta;
 }
 
 /// @brief Create a DifferentialCar object
