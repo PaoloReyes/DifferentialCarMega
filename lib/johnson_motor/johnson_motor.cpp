@@ -40,6 +40,7 @@ void JohnsonMotor::attach_interrupt(void (*isr)(void)) {
 /// @param void
 void JohnsonMotor::enc_isr(void) {
     uint8_t enc_bin = this->read_enc_bin();
+    Serial.println(enc_bin);
     switch (enc_bin) {
         case 0b00:
             if (this->prev_enc_bin == 0b01) {
@@ -73,7 +74,6 @@ void JohnsonMotor::enc_isr(void) {
             break;
     }
     this->prev_enc_bin = enc_bin;
-    Serial.println(this->encoder_count);
 }
 
 /// @brief Set the PWM signal for the motor disregarding the PID controller
