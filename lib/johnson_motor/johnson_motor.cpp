@@ -113,7 +113,6 @@ void JohnsonMotor::update_speed(uint32_t delta) {
         
         this->set_pwm_internal(pid_output);
     }
-    //Serial.println(this->speed);
 }
 
 /// @brief Translate encoder pins to binary
