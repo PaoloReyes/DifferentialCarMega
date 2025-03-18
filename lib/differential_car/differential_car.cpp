@@ -12,12 +12,12 @@ void DifferentialCar::update_speed(void) {
         DifferentialCar::left_motor->update_speed((double)(micros()-DifferentialCar::last_update)/1000000.0);
         DifferentialCar::right_motor->update_speed((double)(micros()-DifferentialCar::last_update)/1000000.0);
     }
-    // DifferentialCar::real_linear_velocity = (DifferentialCar::right_motor->read_speed()+DifferentialCar::left_motor->read_speed())/2.0;
-    // DifferentialCar::real_angular_velocity = (DifferentialCar::right_motor->read_speed()-DifferentialCar::left_motor->read_speed())/WHEELS_DISTANCE;
-    // Serial.print("Right Motor: ");
-    // Serial.print(DifferentialCar::right_motor->read_speed());
-    // Serial.print(" Left Motor: ");
-    // Serial.println(DifferentialCar::left_motor->read_speed());
+    DifferentialCar::real_linear_velocity = (DifferentialCar::right_motor->read_speed()+DifferentialCar::left_motor->read_speed())/2.0;
+    DifferentialCar::real_angular_velocity = (DifferentialCar::right_motor->read_speed()-DifferentialCar::left_motor->read_speed())/WHEELS_DISTANCE;
+    Serial.print("Right Motor: ");
+    Serial.print(DifferentialCar::right_motor->read_speed());
+    Serial.print(" Left Motor: ");
+    Serial.println(DifferentialCar::left_motor->read_speed());
 }
 
 /// @brief Create a DifferentialCar object
@@ -56,12 +56,8 @@ void DifferentialCar::init(void) {
 /// @param linear_speed Linear speed in m/s
 /// @param angular_speed Angular speed in rad/s
 void DifferentialCar::set_speed(double linear_speed, double angular_speed) {
-    const double left_speed = (linear_speed - angular_speed*WHEELS_DISTANCE/2.0)/WHEEL_CIRCUMFERENCE*60.0;
-    const double right_speed = (linear_speed + angular_speed*WHEELS_DISTANCE/2.0)/WHEEL_CIRCUMFERENCE*60.0;
-    Serial.print("Left Speed: ");
-    Serial.print((linear_speed - angular_speed*WHEELS_DISTANCE/2.0)/(WHEEL_CIRCUMFERENCE)*60.0);
-    Serial.print(" Right Speed: ");
-    Serial.println((linear_speed + angular_speed*WHEELS_DISTANCE/2.0)/(WHEEL_CIRCUMFERENCE)*60.0);
+    const double left_speed = (linear_speed - angular_speed*WHEELS_DISTANCE/2.0)/(WHEEL_CIRCUMFERENCE)*60.0;
+    const double right_speed = (linear_speed + angular_speed*WHEELS_DISTANCE/2.0)/(WHEEL_CIRCUMFERENCE)*60.0;
     this->set_motors_speed(left_speed, right_speed);
 }
 
