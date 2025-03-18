@@ -73,7 +73,6 @@ void JohnsonMotor::enc_isr(void) {
             break;
     }
     this->prev_enc_bin = enc_bin;
-    Serial.println(this->encoder_count);
 }
 
 /// @brief Set the PWM signal for the motor disregarding the PID controller
@@ -100,6 +99,7 @@ double JohnsonMotor::read_speed(void) {
 /// @brief Actuates the PID controller and updates the speed of the motor
 /// @param delta Time in seconds since the last update
 void JohnsonMotor::update_speed(uint32_t delta) {
+    Serial.println(this->encoder_count - this->prev_encoder_count);
     this->speed = ((this->encoder_count - this->prev_encoder_count) * 60) / (177.6 * delta);
     this->prev_encoder_count = this->encoder_count;
     
