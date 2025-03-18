@@ -19,6 +19,13 @@ void DifferentialCar::update_speed(void) {
     DifferentialCar::relative_theta += real_angular_velocity*delta;
     DifferentialCar::relative_x_position += real_linear_velocity*cos(DifferentialCar::relative_theta)*delta;
     DifferentialCar::relative_y_position += real_linear_velocity*sin(DifferentialCar::relative_theta)*delta;
+
+    Serial.print("X: ");
+    Serial.print(DifferentialCar::relative_x_position);
+    Serial.print(" Y: ");
+    Serial.print(DifferentialCar::relative_y_position);
+    Serial.print(" Theta: ");
+    Serial.println(DifferentialCar::relative_theta);
 }
 
 /// @brief Create a DifferentialCar object
