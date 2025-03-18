@@ -14,7 +14,7 @@
 
             void set_speed(double speed);
             double read_speed(void);
-            void update_speed(uint32_t delta);
+            void update_speed(double delta);
 
         private:
             uint8_t in1, in2, pwm, enc_a, enc_b;
