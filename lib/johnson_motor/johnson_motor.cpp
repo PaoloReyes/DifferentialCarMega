@@ -99,15 +99,12 @@ double JohnsonMotor::read_speed(void) {
 /// @brief Actuates the PID controller and updates the speed of the motor
 /// @param delta Time in seconds since the last update
 void JohnsonMotor::update_speed(double delta) {
-    Serial.print("Delta: ");
-    Serial.print(delta);
     this->speed = ((this->encoder_count - this->prev_encoder_count) * 60) / (177.6 * delta);
-    Serial.print(" Speed: ");
-    Serial.println(this->speed);
     this->prev_encoder_count = this->encoder_count;
     
     if (this->speed_control_flag) {
         double error = this->speed_setpoint - this->speed;
+        Serial.println(error);
         this->error_sum += error * delta;
 
         double pid_output = this->kp * error + this->ki * this->error_sum;
