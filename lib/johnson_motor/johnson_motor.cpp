@@ -73,6 +73,7 @@ void JohnsonMotor::enc_isr(void) {
             break;
     }
     this->prev_enc_bin = enc_bin;
+    Serial.println(this->encoder_count);
 }
 
 /// @brief Set the PWM signal for the motor disregarding the PID controller
@@ -113,7 +114,7 @@ void JohnsonMotor::update_speed(uint32_t delta) {
         
         this->set_pwm_internal(pid_output);
     }
-    Serial.println(this->speed);
+    //Serial.println(this->speed);
 }
 
 /// @brief Translate encoder pins to binary
