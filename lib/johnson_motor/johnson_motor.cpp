@@ -99,7 +99,7 @@ double JohnsonMotor::read_speed(void) {
 /// @brief Actuates the PID controller and updates the speed of the motor
 /// @param delta Time in seconds since the last update
 void JohnsonMotor::update_speed(uint32_t delta) {
-    this->speed = ((this->encoder_count - this->prev_encoder_count) * 60) / (177.6 * delta) ;
+    this->speed = ((this->encoder_count - this->prev_encoder_count) * 60) / (177.6 * delta);
     this->prev_encoder_count = this->encoder_count;
     
     if (this->speed_control_flag) {
@@ -113,6 +113,7 @@ void JohnsonMotor::update_speed(uint32_t delta) {
         
         this->set_pwm_internal(pid_output);
     }
+    Serial.println(this->speed);
 }
 
 /// @brief Translate encoder pins to binary
