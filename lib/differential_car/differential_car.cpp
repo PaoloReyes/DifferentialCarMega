@@ -58,6 +58,10 @@ void DifferentialCar::init(void) {
 void DifferentialCar::set_speed(double linear_speed, double angular_speed) {
     const double left_speed = (linear_speed - angular_speed*WHEELS_DISTANCE/2.0)/WHEEL_CIRCUMFERENCE*60.0;
     const double right_speed = (linear_speed + angular_speed*WHEELS_DISTANCE/2.0)/WHEEL_CIRCUMFERENCE*60.0;
+    Serial.print("Left Speed: ");
+    Serial.print(left_speed);
+    Serial.print(" Right Speed: ");
+    Serial.println(right_speed);
     this->set_motors_speed(left_speed, right_speed);
 }
 

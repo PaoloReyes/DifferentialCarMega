@@ -104,7 +104,6 @@ void JohnsonMotor::update_speed(double delta) {
     
     if (this->speed_control_flag) {
         double error = this->speed_setpoint - this->speed;
-        Serial.println(error);
         this->error_sum += error * delta;
 
         double pid_output = this->kp * error + this->ki * this->error_sum;
