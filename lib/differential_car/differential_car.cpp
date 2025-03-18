@@ -9,9 +9,8 @@ double DifferentialCar::real_linear_velocity = 0.0, DifferentialCar::real_angula
 /// @param void
 void DifferentialCar::update_speed(void) {
     if (micros() > DifferentialCar::last_update) {
-        Serial.println((micros()-DifferentialCar::last_update)/1000000.0);
-        DifferentialCar::left_motor->update_speed((micros()-DifferentialCar::last_update)/1000000.0);
-        DifferentialCar::right_motor->update_speed((micros()-DifferentialCar::last_update)/1000000.0);
+        DifferentialCar::left_motor->update_speed((double)(micros()-DifferentialCar::last_update)/1000000.0);
+        DifferentialCar::right_motor->update_speed((double)(micros()-DifferentialCar::last_update)/1000000.0);
     }
     // DifferentialCar::real_linear_velocity = (DifferentialCar::right_motor->read_speed()+DifferentialCar::left_motor->read_speed())/2.0;
     // DifferentialCar::real_angular_velocity = (DifferentialCar::right_motor->read_speed()-DifferentialCar::left_motor->read_speed())/WHEELS_DISTANCE;
