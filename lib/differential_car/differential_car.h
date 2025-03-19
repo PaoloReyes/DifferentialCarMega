@@ -11,7 +11,7 @@
 
     #define WHEEL_CIRCUMFERENCE 2.5*2.54*PI/100
     #define WHEELS_DISTANCE 0.2
-    #define CURVE_FACTOR 0.932
+    #define CURVE_FACTOR 1.173
 
     class DifferentialCar {
         public:
