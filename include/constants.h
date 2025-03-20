@@ -17,6 +17,8 @@
     #define RIGHT_MOTOR_KP 0.002
     #define RIGHT_MOTOR_KI 0.012
 
+    #define CAR_KP 0.1
+
     #define READ_WRITE_ENABLER 10
     #define CONTAINERS_NUM 25
 #endif

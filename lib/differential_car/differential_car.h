@@ -23,9 +23,11 @@
             static uint32_t last_update;
             static JohnsonMotor *left_motor, *right_motor;
             static pose_t car_pose;
-
-            static void update_speed(void);
-            static void update_position(void);
+            
+            static void update_position(double delta);
+            static void update_speed(double delta);
+            static void set_speed(double linear_speed, double angular_speed);
+            static void set_motors_speed(double left_speed, double right_speed);
             static double get_euclidean_distance_to_container(pose_t *current, const container_position_t *target);
 
             uint8_t current_container = 0;  
@@ -46,13 +48,9 @@
                             double right_ki);
             void init(void);
 
-            void set_speed(double linear_speed, double angular_speed);
-
         private:
             static void left_motor_isr(void);
             static void right_motor_isr(void);
-            
-            void set_motors_speed(double left_speed, double right_speed);
     };
 
     ISR(TIMER1_OVF_vect);

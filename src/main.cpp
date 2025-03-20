@@ -13,9 +13,6 @@ const double linear_speed = 0.2; //m/s
 void setup(void) {
   Serial.begin(115200);
   car.init();
-  car.set_speed(linear_speed, linear_speed/CURVE_RADIUS);
-  delay(3000);
-  car.set_speed(0, 0);
   // rs485.write("OP 1\r\n");
   // Serial.println(rs485.read());
 }

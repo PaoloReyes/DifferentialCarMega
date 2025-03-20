@@ -7,25 +7,9 @@ pose_t DifferentialCar::car_pose = {0, 0, 0};
 
 /// @brief Wrapper function to update the speed of the individual motors
 /// @param void
-void DifferentialCar::update_speed(void) {
-    double delta = (double)(micros()-DifferentialCar::last_update)/1000000.0;
-    if (micros() > DifferentialCar::last_update) {
-        DifferentialCar::left_motor->update_speed(delta);
-        DifferentialCar::right_motor->update_speed(delta);
-    }
-    double real_linear_velocity = (DifferentialCar::right_motor->read_speed()+DifferentialCar::left_motor->read_speed())*(WHEEL_CIRCUMFERENCE)/120.0;
-    double real_angular_velocity = (DifferentialCar::right_motor->read_speed()-DifferentialCar::left_motor->read_speed())*(WHEEL_CIRCUMFERENCE)/(60*WHEELS_DISTANCE);
-    
-    DifferentialCar::car_pose.theta += real_angular_velocity*delta;
-    DifferentialCar::car_pose.x += real_linear_velocity*cos(DifferentialCar::car_pose.theta)*delta;
-    DifferentialCar::car_pose.y += real_linear_velocity*sin(DifferentialCar::car_pose.theta)*delta;
-
-    Serial.print("X: ");
-    Serial.print(DifferentialCar::car_pose.x);
-    Serial.print(" Y: ");
-    Serial.print(DifferentialCar::car_pose.y);
-    Serial.print(" Theta: ");
-    Serial.println(DifferentialCar::car_pose.theta);
+void DifferentialCar::update_speed(double delta) {
+    DifferentialCar::left_motor->update_speed(delta);
+    DifferentialCar::right_motor->update_speed(delta);
 }
 
 /// @brief Create a DifferentialCar object
@@ -66,17 +50,37 @@ void DifferentialCar::init(void) {
 void DifferentialCar::set_speed(double linear_speed, double angular_speed) {
     const double left_speed = (linear_speed - angular_speed*WHEELS_DISTANCE/2.0)/(WHEEL_CIRCUMFERENCE)*60.0;
     const double right_speed = (linear_speed + angular_speed*WHEELS_DISTANCE/2.0)/(WHEEL_CIRCUMFERENCE)*60.0;
-    this->set_motors_speed(left_speed, right_speed);
+    DifferentialCar::set_motors_speed(left_speed, right_speed);
 }
 
-void DifferentialCar::update_position() {
+void DifferentialCar::update_position(double delta) {
+    double real_linear_velocity = (DifferentialCar::right_motor->read_speed()+DifferentialCar::left_motor->read_speed())*(WHEEL_CIRCUMFERENCE)/120.0;
+    double real_angular_velocity = (DifferentialCar::right_motor->read_speed()-DifferentialCar::left_motor->read_speed())*(WHEEL_CIRCUMFERENCE)/(60*WHEELS_DISTANCE);
+    
+    DifferentialCar::car_pose.theta += real_angular_velocity*delta;
+    DifferentialCar::car_pose.x += real_linear_velocity*cos(DifferentialCar::car_pose.theta)*delta;
+    DifferentialCar::car_pose.y += real_linear_velocity*sin(DifferentialCar::car_pose.theta)*delta;
+
+    Serial.print("X: ");
+    Serial.print(DifferentialCar::car_pose.x);
+    Serial.print(" Y: ");
+    Serial.print(DifferentialCar::car_pose.y);
+    Serial.print(" Theta: ");
+    Serial.println(DifferentialCar::car_pose.theta);
+
     uint8_t target_container = 3;
 
-    double car_2_container_euclidean_distance = DifferentialCar::get_euclidean_distance_to_container(&DifferentialCar::car_pose, 
-                                                                                                    &containers_possition[target_container]);
-    
-    Serial.print("Distance to container: ");
-    Serial.println(car_2_container_euclidean_distance);
+    double error = DifferentialCar::get_euclidean_distance_to_container(&DifferentialCar::car_pose, 
+                                                                    &containers_possition[target_container]);
+
+    double controller_output = error*CAR_KP;
+
+    Serial.print("Error: ");
+    Serial.print(error);
+    Serial.print(" Controller Output: ");
+    Serial.println(controller_output);
+
+    DifferentialCar::set_speed(controller_output, controller_output/CURVE_RADIUS);
 }
 
 /// @brief Wrapper function for the left motor encoder ISR
@@ -95,8 +99,8 @@ void DifferentialCar::right_motor_isr(void) {
 /// @param left_speed RPM setpoint for the left motor
 /// @param right_speed RPM setpoint for the right motor
 void DifferentialCar::set_motors_speed(double left_speed, double right_speed) {
-    this->left_motor->set_speed(left_speed);
-    this->right_motor->set_speed(right_speed);
+    DifferentialCar::left_motor->set_speed(left_speed);
+    DifferentialCar::right_motor->set_speed(right_speed);
 }
 
 double DifferentialCar::get_euclidean_distance_to_container(pose_t *car_pose, const container_position_t *target) {
@@ -107,7 +111,10 @@ double DifferentialCar::get_euclidean_distance_to_container(pose_t *car_pose, co
 /// @param VECTOR(TIMER1_OVF_vect)
 ISR(TIMER1_OVF_vect) {
     TCNT1 = TIMER_CAR_PRELOAD;
-    DifferentialCar::update_speed();
-    DifferentialCar::update_position();
-    DifferentialCar::last_update = micros();
+    if (micros() > DifferentialCar::last_update) {
+        double delta = (double)(micros()-DifferentialCar::last_update)/1000000.0;
+        DifferentialCar::update_speed(delta);
+        DifferentialCar::update_position(delta);
+        DifferentialCar::last_update = micros();
+    }
 }
