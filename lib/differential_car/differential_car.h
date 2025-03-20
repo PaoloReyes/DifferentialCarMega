@@ -3,6 +3,7 @@
     
     #include <Arduino.h>
     #include <johnson_motor.h>
+    #include <../../include/containers.h>
 
     #define TIMER_CAR_MAX 65535
     #define TIMER_CAR_S 0.15
@@ -13,12 +14,21 @@
     #define WHEELS_DISTANCE 0.2
     #define CURVE_RADIUS 1.173
 
+    typedef struct {
+        double x, y, theta;
+    } pose_t;
+
     class DifferentialCar {
         public:
             static uint32_t last_update;
             static JohnsonMotor *left_motor, *right_motor;
+            static pose_t car_pose;
+
             static void update_speed(void);
-            static double relative_x_position, relative_y_position, relative_theta;
+            static void update_position(void);
+            static double get_euclidean_distance_to_container(pose_t *current, const container_position_t *target);
+
+            uint8_t current_container = 0;  
 
             DifferentialCar(uint8_t left_in1, 
                             uint8_t left_in2, 
@@ -37,14 +47,12 @@
             void init(void);
 
             void set_speed(double linear_speed, double angular_speed);
-            void move(double setpoint_distance);
 
         private:
             static void left_motor_isr(void);
             static void right_motor_isr(void);
             
             void set_motors_speed(double left_speed, double right_speed);
-            double get_distance(void);
     };
 
     ISR(TIMER1_OVF_vect);

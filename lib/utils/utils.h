@@ -12,8 +12,4 @@
             uint16_t read_write_enabler;
             HardwareSerial* serial;
     };
-
-    typedef struct {
-        double x, y;
-    } container_position_t;
 #endif
