@@ -9,10 +9,13 @@ DifferentialCar car(LEFT_MOTOR_IN1, LEFT_MOTOR_IN2, LEFT_MOTOR_EN,
                     RIGHT_MOTOR_ENC_A, RIGHT_MOTOR_ENC_B, RIGHT_MOTOR_KP, RIGHT_MOTOR_KI);
 //RS485 rs485(&Serial2, 9600, READ_WRITE_ENABLER);
 
-const double linear_speed = 0.3; //m/s
+const double linear_speed = 0.2; //m/s
 void setup(void) {
   Serial.begin(115200);
   car.init();
+  car.set_speed(linear_speed, linear_speed/CURVE_RADIUS);
+  delay(1000);
+  car.set_speed(0, 0);
   // rs485.write("OP 1\r\n");
   // Serial.println(rs485.read());
 }
