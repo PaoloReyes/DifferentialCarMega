@@ -9,9 +9,9 @@
     #define TIMER_CAR_PRESCALAR 64
     #define TIMER_CAR_PRELOAD TIMER_CAR_MAX-(TIMER_CAR_S*F_CPU/TIMER_CAR_PRESCALAR)
 
-    #define WHEEL_CIRCUMFERENCE 2.5*2.54*PI/100
+    #define WHEEL_CIRCUMFERENCE 2.37*2.54*PI/100
     #define WHEELS_DISTANCE 0.2
-    #define CURVE_FACTOR 1.173
+    #define CURVE_RADIUS 1.173
 
     class DifferentialCar {
         public:

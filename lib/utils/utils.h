@@ -13,4 +13,7 @@
             HardwareSerial* serial;
     };
 
+    typedef struct {
+        double x, y;
+    } container_position_t;
 #endif
