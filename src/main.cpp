@@ -13,6 +13,7 @@ const double linear_speed = 0.2; //m/s
 void setup(void) {
   Serial.begin(115200);
   car.init();
+  car.set_target_container(1);
   // rs485.write("OP 1\r\n");
   // Serial.println(rs485.read());
 }

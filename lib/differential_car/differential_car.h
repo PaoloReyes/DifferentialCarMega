@@ -23,7 +23,8 @@
             static uint32_t last_update;
             static JohnsonMotor *left_motor, *right_motor;
             static pose_t car_pose;
-            
+            static uint8_t target_container;
+
             static void update_position(double delta);
             static void update_speed(double delta);
             static void set_speed(double linear_speed, double angular_speed);
@@ -47,6 +48,8 @@
                             double right_kp, 
                             double right_ki);
             void init(void);
+
+            void set_target_container(uint8_t container);
 
         private:
             static void left_motor_isr(void);

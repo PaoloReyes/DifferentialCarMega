@@ -68,19 +68,22 @@ void DifferentialCar::update_position(double delta) {
     Serial.print(" Theta: ");
     Serial.println(DifferentialCar::car_pose.theta);
 
-    uint8_t target_container = 3;
-
     double error = DifferentialCar::get_euclidean_distance_to_container(&DifferentialCar::car_pose, 
-                                                                    &containers_possition[target_container]);
+                                                                        &containers_possition[DifferentialCar::target_container]);
 
     double controller_output = error*CAR_KP;
+    if (error < 0.1) controller_output = 0;
+
+    DifferentialCar::set_speed(controller_output, controller_output/CURVE_RADIUS);
 
     Serial.print("Error: ");
     Serial.print(error);
     Serial.print(" Controller Output: ");
     Serial.println(controller_output);
+}
 
-    DifferentialCar::set_speed(controller_output, controller_output/CURVE_RADIUS);
+void DifferentialCar::set_target_container(uint8_t container) {
+    DifferentialCar::target_container = container;
 }
 
 /// @brief Wrapper function for the left motor encoder ISR
