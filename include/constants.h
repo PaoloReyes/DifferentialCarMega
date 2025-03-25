@@ -17,8 +17,8 @@
     #define RIGHT_MOTOR_KP 0.002
     #define RIGHT_MOTOR_KI 0.012
 
-    #define VMAX 0.2
-    #define AMAX 0.1
+    #define VMAX 0.3
+    #define AMAX 0.2
     #define CAR_KP 0.1
 
     #define READ_WRITE_ENABLER 10

@@ -23,7 +23,6 @@
             static uint32_t last_update, new_profile_time;
             static JohnsonMotor *left_motor, *right_motor;
             static pose_t car_pose;
-            static uint8_t target_container;
             static double t1, t2, t3, vtop, b;
             static bool on_target;
 
