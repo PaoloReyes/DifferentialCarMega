@@ -2,8 +2,12 @@
 
 // Initialize static variables
 JohnsonMotor *DifferentialCar::left_motor, *DifferentialCar::right_motor;
-uint32_t DifferentialCar::last_update = millis();
+uint32_t DifferentialCar::last_update = micros();
+uint32_t DifferentialCar::new_profile_time = millis();
 pose_t DifferentialCar::car_pose = {0, 0, 0};
+uint8_t DifferentialCar::target_container = 0;
+double DifferentialCar::t1, DifferentialCar::t2, DifferentialCar::t3, DifferentialCar::vtop, DifferentialCar::b;
+bool DifferentialCar::on_target = true;
 
 /// @brief Wrapper function to update the speed of the individual motors
 /// @param void
@@ -61,29 +65,60 @@ void DifferentialCar::update_position(double delta) {
     DifferentialCar::car_pose.x += real_linear_velocity*cos(DifferentialCar::car_pose.theta)*delta;
     DifferentialCar::car_pose.y += real_linear_velocity*sin(DifferentialCar::car_pose.theta)*delta;
 
-    Serial.print("X: ");
-    Serial.print(DifferentialCar::car_pose.x);
-    Serial.print(" Y: ");
-    Serial.print(DifferentialCar::car_pose.y);
-    Serial.print(" Theta: ");
-    Serial.println(DifferentialCar::car_pose.theta);
+    // Serial.print("X: ");
+    // Serial.print(DifferentialCar::car_pose.x);
+    // Serial.print(" Y: ");
+    // Serial.print(DifferentialCar::car_pose.y);
+    // Serial.print(" Theta: ");
+    // Serial.println(DifferentialCar::car_pose.theta);
 
-    double error = DifferentialCar::get_euclidean_distance_to_container(&DifferentialCar::car_pose, 
-                                                                        &containers_possition[DifferentialCar::target_container]);
+    // DifferentialCar::set_speed(controller_output, controller_output/CURVE_RADIUS);
+    // DifferentialCar::vel((millis()-DifferentialCar::new_profile_time)/1000.0);
 
-    double controller_output = error*CAR_KP;
-    if (error < 0.1) controller_output = 0;
+    if (DifferentialCar::on_target) {
+        Serial.print("Time: ");
+        Serial.print((millis()-DifferentialCar::new_profile_time)/1000.0);
+        Serial.print(" Velocity: ");
+        Serial.println(DifferentialCar::vel((millis()-DifferentialCar::new_profile_time)/1000.0));
+    }
 
-    DifferentialCar::set_speed(controller_output, controller_output/CURVE_RADIUS);
-
-    Serial.print("Error: ");
-    Serial.print(error);
-    Serial.print(" Controller Output: ");
-    Serial.println(controller_output);
+    // Serial.print("Error: ");
+    // Serial.print(error);
+    // Serial.print(" Controller Output: ");
+    // Serial.println(controller_output);
 }
 
 void DifferentialCar::set_target_container(uint8_t container) {
-    DifferentialCar::target_container = container;
+    double distance = DifferentialCar::get_euclidean_distance_to_container(&DifferentialCar::car_pose, 
+                                                                            &containers_possition[target_container]);
+
+    DifferentialCar::generate_profile(distance);
+    DifferentialCar::on_target = false;
+}
+
+void DifferentialCar::generate_profile(double target) {
+    bool vmax_reached = target*AMAX/(2.0*VMAX)-(VMAX/2.0) >= 0;
+
+    if (vmax_reached) {
+        DifferentialCar::t1 = VMAX/AMAX;
+        DifferentialCar::t2 = -DifferentialCar::t1+target/VMAX+VMAX/AMAX;
+        DifferentialCar::t3 = DifferentialCar::t1+DifferentialCar::t2;
+        DifferentialCar::vtop = VMAX;
+    } else {
+        DifferentialCar::t1 = sqrt(target/AMAX);
+        DifferentialCar::t2 = DifferentialCar::t1;
+        DifferentialCar::t3 = DifferentialCar::t1+DifferentialCar::t2;
+        DifferentialCar::vtop = target/DifferentialCar::t1;
+    }
+    DifferentialCar::b = AMAX*DifferentialCar::t3;
+    DifferentialCar::new_profile_time = millis();
+}
+
+double DifferentialCar::vel(double t) {
+    if (t >= 0 && t < DifferentialCar::t1) return AMAX*t;
+    if (t >= DifferentialCar::t1 && t <= DifferentialCar::t2) return DifferentialCar::vtop;
+    if (t > DifferentialCar::t2 && t <= DifferentialCar::t3) return -AMAX*(t)+DifferentialCar::b;
+    return 0;
 }
 
 /// @brief Wrapper function for the left motor encoder ISR

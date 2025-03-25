@@ -20,16 +20,19 @@
 
     class DifferentialCar {
         public:
-            static uint32_t last_update;
+            static uint32_t last_update, new_profile_time;
             static JohnsonMotor *left_motor, *right_motor;
             static pose_t car_pose;
             static uint8_t target_container;
+            static double t1, t2, t3, vtop, b;
+            static bool on_target;
 
             static void update_position(double delta);
             static void update_speed(double delta);
             static void set_speed(double linear_speed, double angular_speed);
             static void set_motors_speed(double left_speed, double right_speed);
             static double get_euclidean_distance_to_container(pose_t *current, const container_position_t *target);
+            static double vel(double t);
 
             uint8_t current_container = 0;  
 
@@ -49,7 +52,8 @@
                             double right_ki);
             void init(void);
 
-            void set_target_container(uint8_t container);
+            static void set_target_container(uint8_t container);
+            static void generate_profile(double target);
 
         private:
             static void left_motor_isr(void);
