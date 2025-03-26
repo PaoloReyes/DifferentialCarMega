@@ -7,7 +7,7 @@
         double x, y;
     } container_position_t;
 
-    const container_position_t containers_possition[CONTAINERS_NUM+4] = {{0, 0},
+    const container_position_t containers_position[CONTAINERS_NUM+4] = {{0, 0},
                                                                         {0.26, 0.02},
                                                                         {0.52, 0.10},
                                                                         {0.72, 0.31},

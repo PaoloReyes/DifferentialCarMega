@@ -5,8 +5,11 @@ JohnsonMotor *DifferentialCar::left_motor, *DifferentialCar::right_motor;
 uint32_t DifferentialCar::last_update = micros();
 uint32_t DifferentialCar::new_profile_time = millis();
 pose_t DifferentialCar::car_pose = {0, 0, 0};
-double DifferentialCar::t1, DifferentialCar::t2, DifferentialCar::t3, DifferentialCar::vtop, DifferentialCar::b;
+double DifferentialCar::t1, DifferentialCar::t2, DifferentialCar::t3, DifferentialCar::vtop, DifferentialCar::b, DifferentialCar::c, DifferentialCar::d;
+double DifferentialCar::target_distance = 0;
+uint16_t DifferentialCar::container_target = 0;
 bool DifferentialCar::on_target = true;
+bool DifferentialCar::vmax_reached = false;
 
 /// @brief Wrapper function to update the speed of the individual motors
 /// @param void
@@ -64,50 +67,55 @@ void DifferentialCar::update_position(double delta) {
     DifferentialCar::car_pose.x += real_linear_velocity*cos(DifferentialCar::car_pose.theta)*delta;
     DifferentialCar::car_pose.y += real_linear_velocity*sin(DifferentialCar::car_pose.theta)*delta;
 
-    Serial.print("X: ");
-    Serial.print(DifferentialCar::car_pose.x);
-    Serial.print(" Y: ");
-    Serial.print(DifferentialCar::car_pose.y);
-    Serial.print(" Theta: ");
-    Serial.println(DifferentialCar::car_pose.theta);
-
-    // DifferentialCar::set_speed(controller_output, controller_output/CURVE_RADIUS);
-    // DifferentialCar::vel((millis()-DifferentialCar::new_profile_time)/1000.0);
+    // Serial.print("X: ");
+    // Serial.print(DifferentialCar::car_pose.x);
+    // Serial.print(" Y: ");
+    // Serial.print(DifferentialCar::car_pose.y);
+    // Serial.print(" Theta: ");
+    // Serial.println(DifferentialCar::car_pose.theta);
 
     if (!DifferentialCar::on_target) {
         double trapezoidal_speed = DifferentialCar::vel((millis()-DifferentialCar::new_profile_time)/1000.0);
-        DifferentialCar::set_speed(trapezoidal_speed, trapezoidal_speed/CURVE_RADIUS);
+        double trapezoidal_position = DifferentialCar::pos((millis()-DifferentialCar::new_profile_time)/1000.0);
+        double trapezoidal_error = DifferentialCar::target_distance - trapezoidal_position;
+        double car_error = DifferentialCar::get_euclidean_distance_to_container(&DifferentialCar::car_pose, &containers_position[DifferentialCar::container_target]);
+        double delta_error = car_error - trapezoidal_error;
+        DifferentialCar::set_speed(trapezoidal_speed+CAR_KP*delta_error, (trapezoidal_speed+CAR_KP*delta_error)/CURVE_RADIUS);
+        Serial.print("PID Output: ");
+        Serial.print(trapezoidal_speed+CAR_KP*delta_error);
+        Serial.print(" Error: ");
+        Serial.println(car_error);
     }
-
-    // Serial.print("Error: ");
-    // Serial.print(error);
-    // Serial.print(" Controller Output: ");
-    // Serial.println(controller_output);
 }
 
 void DifferentialCar::set_target_container(uint8_t container) {
-    double distance = DifferentialCar::get_euclidean_distance_to_container(&DifferentialCar::car_pose, 
-                                                                            &containers_possition[container]);
+    DifferentialCar::container_target = container;
+    DifferentialCar::target_distance = DifferentialCar::get_euclidean_distance_to_container(&DifferentialCar::car_pose, &containers_position[DifferentialCar::container_target]);
 
-    DifferentialCar::generate_profile(distance);
+    Serial.print("target: ");
+    Serial.println(DifferentialCar::target_distance);
+    DifferentialCar::generate_profile_parameters();
     DifferentialCar::on_target = false;
 }
 
-void DifferentialCar::generate_profile(double target) {
-    bool vmax_reached = target*AMAX/(2.0*VMAX)-(VMAX/2.0) >= 0;
+void DifferentialCar::generate_profile_parameters(void) {
+    DifferentialCar::vmax_reached = DifferentialCar::target_distance*AMAX/(2.0*VMAX)-(VMAX/2.0) >= 0;
 
-    if (vmax_reached) {
+    if (DifferentialCar::vmax_reached) {
         DifferentialCar::t1 = VMAX/AMAX;
-        DifferentialCar::t2 = -DifferentialCar::t1+target/VMAX+VMAX/AMAX;
+        DifferentialCar::t2 = -DifferentialCar::t1+ DifferentialCar::target_distance/VMAX+VMAX/AMAX;
         DifferentialCar::t3 = DifferentialCar::t1+DifferentialCar::t2;
         DifferentialCar::vtop = VMAX;
     } else {
-        DifferentialCar::t1 = sqrt(target/AMAX);
+        DifferentialCar::t1 = sqrt(DifferentialCar::target_distance/AMAX);
         DifferentialCar::t2 = DifferentialCar::t1;
         DifferentialCar::t3 = DifferentialCar::t1+DifferentialCar::t2;
-        DifferentialCar::vtop = target/DifferentialCar::t1;
+        DifferentialCar::vtop = DifferentialCar::target_distance/DifferentialCar::t1;
     }
+
     DifferentialCar::b = AMAX*DifferentialCar::t3;
+    DifferentialCar::c = -VMAX*DifferentialCar::t1/2;
+    DifferentialCar::d = DifferentialCar::target_distance-AMAX/2*pow(DifferentialCar::t3, 2);
     DifferentialCar::new_profile_time = millis();
 }
 
@@ -115,6 +123,15 @@ double DifferentialCar::vel(double t) {
     if (t >= 0 && t < DifferentialCar::t1) return AMAX*t;
     if (t >= DifferentialCar::t1 && t <= DifferentialCar::t2) return DifferentialCar::vtop;
     if (t > DifferentialCar::t2 && t <= DifferentialCar::t3) return -AMAX*(t)+DifferentialCar::b;
+    return 0;
+}
+
+double DifferentialCar::pos(double t) {
+    if (t >= 0 && t < DifferentialCar::t1) return AMAX/2*pow(t, 2);
+    if (t >= DifferentialCar::t1 && t <= DifferentialCar::t2 && DifferentialCar::vmax_reached) return VMAX*t+DifferentialCar::c;
+    if (t >= DifferentialCar::t1 && t <= DifferentialCar::t2 && !DifferentialCar::vmax_reached) return DifferentialCar::target_distance/2;
+    if (t > DifferentialCar::t2 && t <= DifferentialCar::t3) return -AMAX/2*pow(t, 2)+DifferentialCar::b*t+DifferentialCar::d;
+    if (t > DifferentialCar::t3) return DifferentialCar::target_distance;
     return 0;
 }
 

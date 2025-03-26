@@ -23,8 +23,9 @@
             static uint32_t last_update, new_profile_time;
             static JohnsonMotor *left_motor, *right_motor;
             static pose_t car_pose;
-            static double t1, t2, t3, vtop, b;
-            static bool on_target;
+            static double t1, t2, t3, vtop, b, c, d, target_distance;
+            static uint16_t container_target;
+            static bool on_target, vmax_reached;
 
             static void update_position(double delta);
             static void update_speed(double delta);
@@ -32,6 +33,7 @@
             static void set_motors_speed(double left_speed, double right_speed);
             static double get_euclidean_distance_to_container(pose_t *current, const container_position_t *target);
             static double vel(double t);
+            static double pos(double t);
 
             uint8_t current_container = 0;  
 
@@ -52,7 +54,7 @@
             void init(void);
 
             static void set_target_container(uint8_t container);
-            static void generate_profile(double target);
+            static void generate_profile_parameters(void);
 
         private:
             static void left_motor_isr(void);
