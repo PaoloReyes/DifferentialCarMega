@@ -12,7 +12,7 @@ DifferentialCar car(LEFT_MOTOR_IN1, LEFT_MOTOR_IN2, LEFT_MOTOR_EN,
 void setup(void) {
   Serial.begin(115200);
   car.init();
-  car.set_target_container(5);
+  car.set_target_container(11);
   //car.set_target_container(0);
   // rs485.write("OP 1\r\n");
   // Serial.println(rs485.read());

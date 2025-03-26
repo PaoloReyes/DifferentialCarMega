@@ -19,7 +19,7 @@
 
     #define VMAX 0.5
     #define AMAX 0.2
-    #define CAR_KP 0.1
+    #define CAR_KP 0.4
 
     #define READ_WRITE_ENABLER 10
     #define CONTAINERS_NUM 25

@@ -36,8 +36,6 @@
             static double vel(double t);
             static double pos(double t);
 
-            uint8_t current_container = 0;  
-
             DifferentialCar(uint8_t left_in1, 
                             uint8_t left_in2, 
                             uint8_t left_pwm, 
