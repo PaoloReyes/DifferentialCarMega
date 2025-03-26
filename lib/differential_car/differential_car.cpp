@@ -68,13 +68,6 @@ void DifferentialCar::update_position(double delta) {
     DifferentialCar::car_pose.x += real_linear_velocity*cos(DifferentialCar::car_pose.theta)*delta;
     DifferentialCar::car_pose.y += real_linear_velocity*sin(DifferentialCar::car_pose.theta)*delta;
 
-    Serial.print("X: ");
-    Serial.print(DifferentialCar::car_pose.x);
-    Serial.print(" Y: ");
-    Serial.print(DifferentialCar::car_pose.y);
-    Serial.print(" Theta: ");
-    Serial.println(DifferentialCar::car_pose.theta);
-
     if (!DifferentialCar::on_target) {
         double trapezoidal_speed = DifferentialCar::vel((millis()-DifferentialCar::new_profile_time)/1000.0);
         double trapezoidal_position = DifferentialCar::pos((millis()-DifferentialCar::new_profile_time)/1000.0);
@@ -86,7 +79,6 @@ void DifferentialCar::update_position(double delta) {
         if (DifferentialCar::last_position_error < car_error) {
             DifferentialCar::on_target = true;
             DifferentialCar::set_speed(0, 0);
-            Serial.println("On Target");
         }
         DifferentialCar::last_position_error = car_error;
     }
@@ -97,8 +89,6 @@ void DifferentialCar::set_target_container(uint8_t container) {
     DifferentialCar::container_target = container;
     DifferentialCar::target_distance = DifferentialCar::get_euclidean_distance_to_container(&DifferentialCar::car_pose, &containers_position[DifferentialCar::container_target]);
 
-    Serial.print("target: ");
-    Serial.println(DifferentialCar::target_distance);
     DifferentialCar::generate_profile_parameters();
     DifferentialCar::on_target = false;
 }

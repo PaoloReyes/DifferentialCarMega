@@ -12,14 +12,14 @@ DifferentialCar car(LEFT_MOTOR_IN1, LEFT_MOTOR_IN2, LEFT_MOTOR_EN,
 void setup(void) {
   Serial.begin(115200);
   car.init();
-  car.set_target_container(11);
-  //car.set_target_container(0);
-  // rs485.write("OP 1\r\n");
-  // Serial.println(rs485.read());
 }
 
 void loop(void) {
-  // rs485.write("GG\r\n");
-  // Serial.println(rs485.read());
-  // delay(1000);
+  if (Serial.available() > 0) {
+    String data = Serial.readStringUntil('\n');
+    String command = data.substring(0, 2);
+    String parameter = data.substring(3, data.length());
+    Serial.println(command);
+    Serial.println(parameter);
+  }
 }
