@@ -26,6 +26,7 @@
             static double t1, t2, t3, vtop, b, c, d, target_distance;
             static uint16_t container_target;
             static bool on_target, vmax_reached;
+            static double last_position_error;
 
             static void update_position(double delta);
             static void update_speed(double delta);

@@ -10,6 +10,7 @@ double DifferentialCar::target_distance = 0;
 uint16_t DifferentialCar::container_target = 0;
 bool DifferentialCar::on_target = true;
 bool DifferentialCar::vmax_reached = false;
+double DifferentialCar::last_position_error = 0;
 
 /// @brief Wrapper function to update the speed of the individual motors
 /// @param void
@@ -81,6 +82,13 @@ void DifferentialCar::update_position(double delta) {
         double car_error = DifferentialCar::get_euclidean_distance_to_container(&DifferentialCar::car_pose, &containers_position[DifferentialCar::container_target]);
         double delta_error = car_error - trapezoidal_error;
         DifferentialCar::set_speed(trapezoidal_speed+CAR_KP*delta_error, (trapezoidal_speed+CAR_KP*delta_error)/CURVE_RADIUS);
+        
+        if (DifferentialCar::last_position_error < car_error) {
+            DifferentialCar::on_target = true;
+            DifferentialCar::set_speed(0, 0);
+            Serial.println("On Target");
+        }
+        DifferentialCar::last_position_error = car_error;
         Serial.print("PID Output: ");
         Serial.print(trapezoidal_speed+CAR_KP*delta_error);
         Serial.print(" Error: ");
