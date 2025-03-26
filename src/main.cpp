@@ -42,11 +42,7 @@ void loop(void) {
           if (id.toInt() == CAR_ID) {
             state = WAITING_COMMAND;
             Serial.println("OK");
-          } else {
-            Serial.println("ERR");
           }
-        } else {
-          Serial.println("ERR");
         }
         break;
       case WAITING_COMMAND:
@@ -54,7 +50,7 @@ void loop(void) {
           String container = get_next_parameter(&parameters);
           if (container.toInt() >= 0 && container.toInt() < CONTAINERS_NUM) {
             car.set_target_container(container.toInt());
-            Serial.println(container.toInt());
+            car.wait_until_on_target();
             Serial.println("OK");
           } else {
             Serial.println("ERR");

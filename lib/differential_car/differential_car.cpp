@@ -130,6 +130,12 @@ double DifferentialCar::pos(double t) {
     return 0;
 }
 
+void DifferentialCar::wait_until_on_target(void) {
+    while (!DifferentialCar::on_target) {
+        asm("nop");
+    }
+}
+
 /// @brief Wrapper function for the left motor encoder ISR
 /// @param void
 void DifferentialCar::left_motor_isr(void) {

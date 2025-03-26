@@ -51,6 +51,7 @@
                             double right_kp, 
                             double right_ki);
             void init(void);
+            void wait_until_on_target(void);
 
             static void set_target_container(uint8_t container);
             static void generate_profile_parameters(void);
