@@ -22,5 +22,5 @@
     #define CAR_KP 0.4
 
     #define READ_WRITE_ENABLER 10
-    #define CONTAINERS_NUM 25
+    #define CONTAINERS_NUM 12
 #endif
