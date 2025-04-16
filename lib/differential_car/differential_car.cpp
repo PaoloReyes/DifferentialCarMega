@@ -60,60 +60,74 @@ void DifferentialCar::set_speed(double linear_speed, double angular_speed) {
     DifferentialCar::set_motors_speed(left_speed, right_speed);
 }
 
+/// @brief Perform the kinematic model to set the speed of the car using the expected speed from the trapezoidal profile and a proportional controller for the position error
+/// @param delta Time since the last update in seconds
 void DifferentialCar::update_position(double delta) {
-    double real_linear_velocity = (DifferentialCar::right_motor->read_speed()+DifferentialCar::left_motor->read_speed())*(WHEEL_CIRCUMFERENCE)/120.0;
-    double real_angular_velocity = (DifferentialCar::right_motor->read_speed()-DifferentialCar::left_motor->read_speed())*(WHEEL_CIRCUMFERENCE)/(60*WHEELS_DISTANCE);
+    double real_linear_velocity = (DifferentialCar::right_motor->read_speed()+DifferentialCar::left_motor->read_speed())*(WHEEL_CIRCUMFERENCE)/120.0; //Car speed in m/s
+    double real_angular_velocity = (DifferentialCar::right_motor->read_speed()-DifferentialCar::left_motor->read_speed())*(WHEEL_CIRCUMFERENCE)/(60*WHEELS_DISTANCE); //Car angular speed in rad/s
     
+    //Update the car pose using euler integration
     DifferentialCar::car_pose.theta += real_angular_velocity*delta;
     DifferentialCar::car_pose.x += real_linear_velocity*cos(DifferentialCar::car_pose.theta)*delta;
     DifferentialCar::car_pose.y += real_linear_velocity*sin(DifferentialCar::car_pose.theta)*delta;
 
+    //Update the car speed using the trapezoidal profile if the car is not on target
     if (!DifferentialCar::on_target) {
-        double trapezoidal_speed = DifferentialCar::vel((millis()-DifferentialCar::new_profile_time)/1000.0);
-        double trapezoidal_position = DifferentialCar::pos((millis()-DifferentialCar::new_profile_time)/1000.0);
-        double trapezoidal_error = DifferentialCar::target_distance - trapezoidal_position;
-        double car_error = DifferentialCar::get_euclidean_distance_to_container(&DifferentialCar::car_pose, &containers_position[DifferentialCar::container_target]);
-        double delta_error = car_error - trapezoidal_error;
-        DifferentialCar::set_speed(trapezoidal_speed+CAR_KP*delta_error, (trapezoidal_speed+CAR_KP*delta_error)/CURVE_RADIUS);
+        double trapezoidal_speed = DifferentialCar::vel((millis()-DifferentialCar::new_profile_time)/1000.0); //Expected speed from the trapezoidal profile
+        double trapezoidal_position = DifferentialCar::pos((millis()-DifferentialCar::new_profile_time)/1000.0); //Expected position from the trapezoidal profile
+        double trapezoidal_error = DifferentialCar::target_distance - trapezoidal_position; //Expected position error from the trapezoidal profile
+        double car_error = DifferentialCar::get_euclidean_distance_to_container(&DifferentialCar::car_pose, &containers_position[DifferentialCar::container_target]); //Car position error
+        double delta_error = car_error - trapezoidal_error; //Position error between the car and the trapezoidal profile expected position
+        DifferentialCar::set_speed(trapezoidal_speed+CAR_KP*delta_error, (trapezoidal_speed+CAR_KP*delta_error)/CURVE_RADIUS); //Set the speed of the car using the trapezoidal profile and a proportional controller
         
+        //Check if the car is on the least position error
         if (DifferentialCar::last_position_error < car_error) {
-            DifferentialCar::on_target = true;
-            DifferentialCar::set_speed(0, 0);
+            DifferentialCar::on_target = true; //Set the car to on target
+            DifferentialCar::set_speed(0, 0);  //Stop the car
         }
-        DifferentialCar::last_position_error = car_error;
+        DifferentialCar::last_position_error = car_error; //Update the last position error
     }
 }
 
+/// @brief Set a target euclidean distance to a container
+/// @param container Target container number
 void DifferentialCar::set_target_container(uint8_t container) {
     DifferentialCar::last_position_error = 10000000;
     DifferentialCar::container_target = container;
-    DifferentialCar::target_distance = DifferentialCar::get_euclidean_distance_to_container(&DifferentialCar::car_pose, &containers_position[DifferentialCar::container_target]);
+    // Set the target distance to the container
+    DifferentialCar::target_distance = DifferentialCar::get_euclidean_distance_to_container(&DifferentialCar::car_pose, 
+                                                                                            &containers_position[DifferentialCar::container_target]);
 
-    DifferentialCar::generate_profile_parameters();
-    DifferentialCar::on_target = false;
+    DifferentialCar::generate_profile_parameters(); //Generate the trapezoidal profile parameters
+    DifferentialCar::on_target = false;             //Set the car to not on target
 }
 
+/// @brief Generate the trapezoidal profile parameters based on the trapezoidal motion model, the target distance, max speed and acceleration
 void DifferentialCar::generate_profile_parameters(void) {
-    DifferentialCar::vmax_reached = DifferentialCar::target_distance*AMAX/(2.0*VMAX)-(VMAX/2.0) >= 0;
+    DifferentialCar::vmax_reached = DifferentialCar::target_distance*AMAX/(2.0*VMAX)-(VMAX/2.0) >= 0; //Check if the max speed is reached
 
+    //If max speed is reached, generate a trapezoidal profile, if not generate a triangular profile
     if (DifferentialCar::vmax_reached) {
-        DifferentialCar::t1 = VMAX/AMAX;
-        DifferentialCar::t2 = -DifferentialCar::t1+ DifferentialCar::target_distance/VMAX+VMAX/AMAX;
-        DifferentialCar::t3 = DifferentialCar::t1+DifferentialCar::t2;
-        DifferentialCar::vtop = VMAX;
+        DifferentialCar::t1 = VMAX/AMAX; //Time to reach max speed
+        DifferentialCar::t2 = -DifferentialCar::t1+ DifferentialCar::target_distance/VMAX+VMAX/AMAX; //Time to start decelerating
+        DifferentialCar::t3 = DifferentialCar::t1+DifferentialCar::t2; //Expected time to reach the target distance
+        DifferentialCar::vtop = VMAX; //Max speed
     } else {
-        DifferentialCar::t1 = sqrt(DifferentialCar::target_distance/AMAX);
-        DifferentialCar::t2 = DifferentialCar::t1;
-        DifferentialCar::t3 = DifferentialCar::t1+DifferentialCar::t2;
-        DifferentialCar::vtop = DifferentialCar::target_distance/DifferentialCar::t1;
+        DifferentialCar::t1 = sqrt(DifferentialCar::target_distance/AMAX); //Time to reach top speed
+        DifferentialCar::t2 = DifferentialCar::t1;                         //Time to start decelerating
+        DifferentialCar::t3 = DifferentialCar::t1+DifferentialCar::t2;     //Expected time to reach the target distance
+        DifferentialCar::vtop = DifferentialCar::target_distance/DifferentialCar::t1; //Max speed reached
     }
 
-    DifferentialCar::b = AMAX*DifferentialCar::t3;
-    DifferentialCar::c = -VMAX*DifferentialCar::t1/2;
-    DifferentialCar::d = DifferentialCar::target_distance-AMAX/2*pow(DifferentialCar::t3, 2);
-    DifferentialCar::new_profile_time = millis();
+    DifferentialCar::b = AMAX*DifferentialCar::t3;    //b parameter from the trapezoidal profile equation
+    DifferentialCar::c = -VMAX*DifferentialCar::t1/2; //c parameter from the trapezoidal profile equation
+    DifferentialCar::d = DifferentialCar::target_distance-AMAX/2*pow(DifferentialCar::t3, 2); //d parameter from the trapezoidal profile equation
+    DifferentialCar::new_profile_time = millis();     //Set the new profile start time
 }
 
+/// @brief Get the expected velocity of the car at a given time based on the parameters of the trapezoidal profile
+/// @param t Current time
+/// @return Expected velocity of the car at time t
 double DifferentialCar::vel(double t) {
     if (t >= 0 && t < DifferentialCar::t1) return AMAX*t;
     if (t >= DifferentialCar::t1 && t <= DifferentialCar::t2) return DifferentialCar::vtop;
@@ -121,6 +135,9 @@ double DifferentialCar::vel(double t) {
     return 0;
 }
 
+/// @brief Get the expected position of the car at a given time based on the parameters of the trapezoidal profile
+/// @param t Current time
+/// @return Expected position of the car at time t
 double DifferentialCar::pos(double t) {
     if (t >= 0 && t < DifferentialCar::t1) return AMAX/2*pow(t, 2);
     if (t >= DifferentialCar::t1 && t <= DifferentialCar::t2 && DifferentialCar::vmax_reached) return VMAX*t+DifferentialCar::c;
@@ -130,6 +147,7 @@ double DifferentialCar::pos(double t) {
     return 0;
 }
 
+/// @brief Wait until the car is on target to break the loop
 void DifferentialCar::wait_until_on_target(void) {
     while (!DifferentialCar::on_target) {
         asm("nop");
@@ -160,7 +178,7 @@ double DifferentialCar::get_euclidean_distance_to_container(pose_t *car_pose, co
     return sqrt(pow(car_pose->x - target->x, 2) + pow(car_pose->y - target->y, 2));
 }
 
-/// @brief Timer1 Overflow Interrupt Service Routine, reload the timer and update the car speed speed
+/// @brief Timer1 Overflow Interrupt Service Routine, reload the timer and update the car speed and position
 /// @param VECTOR(TIMER1_OVF_vect)
 ISR(TIMER1_OVF_vect) {
     TCNT1 = TIMER_CAR_PRELOAD;

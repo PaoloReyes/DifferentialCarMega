@@ -5,8 +5,9 @@
     
     typedef struct {
         double x, y;
-    } container_position_t;
+    } container_position_t; //Structure to hold the position of the containers
 
+    //Container positions in (x, y) coordinates in meters
     const container_position_t containers_position[CONTAINERS_NUM] = {{0, 0},
                                                                     {0.32, 0.04},
                                                                     {0.54, 0.15},
