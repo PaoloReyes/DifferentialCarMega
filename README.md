@@ -11,10 +11,9 @@ This repository contains the code for the car module of the automatic paint mach
 
 ## Communication Protocol
 The car module receives and sends commands via a predefined protocol:
-- `MOVE POSITION SPEED` - Moves to the specified container position at the given speed.
-- `STOP` - Immediately stops all movement.
-- `STATUS` - Returns the current position based on encoder feedback.
-- `CALIBRATE` - Runs the homing sequence to set reference positions.
+- `OP #` - Opens RS485 communication.
+- `CL` - Immediately stops RS485 communication.
+- `MV #` - Moves the car to a specified container position.
 
 ## Troubleshooting
 | Issue               | Possible Cause                | Solution |
