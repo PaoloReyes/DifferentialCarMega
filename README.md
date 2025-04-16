@@ -19,7 +19,6 @@ The car module receives and sends commands via a predefined protocol:
 | Issue               | Possible Cause                | Solution |
 |---------------------|-----------------------------|----------|
 | Motor not moving   | Loose wiring, wrong pinout  | Check connections, verify pin configuration |
-| Incorrect position | Calibration error           | Re-run calibration sequence |
 | No response       | Communication failure       | Verify RS485 wiring and settings |
 
 
